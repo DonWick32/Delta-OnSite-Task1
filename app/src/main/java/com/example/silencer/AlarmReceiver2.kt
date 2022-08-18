@@ -14,7 +14,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.content.getSystemService
 
-class AlarmReceiver : BroadcastReceiver() {
+class AlarmReceiver2 : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
 
         var nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -26,14 +26,15 @@ class AlarmReceiver : BroadcastReceiver() {
         createNotificationChannel(context)
         sendNotification(context)
         var am : AudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        am.ringerMode = AudioManager.RINGER_MODE_SILENT
+        am.ringerMode = AudioManager.RINGER_MODE_NORMAL
+
     }
 
     private fun sendNotification(context: Context) {
         val builder: NotificationCompat.Builder = NotificationCompat.Builder(context, "channel0")
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("Device Silencer")
-            .setContentText("Your device is set to silent mode.")
+            .setContentText("Your device is set to normal mode.")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 
         val notificationManager = NotificationManagerCompat.from(context)
@@ -45,7 +46,7 @@ class AlarmReceiver : BroadcastReceiver() {
             val name = "Notif channel"
             val desc = "Description"
             val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel("channel0", name, importance)
+            val channel = NotificationChannel("channel1", name, importance)
             channel.description = desc
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)

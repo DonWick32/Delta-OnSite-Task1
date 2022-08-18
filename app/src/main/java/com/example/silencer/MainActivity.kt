@@ -10,6 +10,7 @@ import android.content.Intent
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
@@ -38,6 +39,7 @@ class MainActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetListener, Da
     var endTimeYear = 0
     var startTxt = ""
     var endTxt = ""
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,12 +82,9 @@ class MainActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetListener, Da
 
         createNotificationChannel()
         btn.setOnClickListener {
-            val calendar1 = Calendar.getInstance()
-            calendar1.set(startTimeYear,startTimeMonth,startTimeDay,startTimeHour,startTimeMinute)
-            val calendar2 = Calendar.getInstance()
-            calendar1.set(endTimeYear,endTimeMonth,endTimeDay,endTimeHour,endTimeMinute)
+
             if (startTimeTxt.text != "" && endTimeTxt.text != "")
-                setAlarm(calendar1, calendar2)
+                setAlarm()
             else {
                 Toast.makeText(this, "Pick start and end time!", Toast.LENGTH_SHORT).show()
             }
@@ -93,18 +92,31 @@ class MainActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetListener, Da
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
-    private fun setAlarm(calendar1: Calendar, calendar2: Calendar) {
-        val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
-        val intent = Intent(this,AlarmReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-        alarmManager.set(
-            AlarmManager.RTC_WAKEUP,calendar1.timeInMillis,
-            pendingIntent
-        )
-        alarmManager.set(
-            AlarmManager.RTC_WAKEUP,calendar2.timeInMillis,
-            pendingIntent
-        )
+    private fun setAlarm() {
+        val calendar1 = Calendar.getInstance()
+        calendar1.set(startTimeYear,startTimeMonth,startTimeDay,startTimeHour,startTimeMinute)
+        val calendar2 = Calendar.getInstance()
+        calendar2.set(endTimeYear,endTimeMonth,endTimeDay,endTimeHour,endTimeMinute)
+        if (calendar1.timeInMillis < calendar2.timeInMillis) {
+            val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
+            val intent = Intent(this,AlarmReceiver::class.java)
+            val pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+            alarmManager.setExact(
+                AlarmManager.RTC_WAKEUP, calendar1.timeInMillis,
+                pendingIntent
+            )
+            val alarmManager2 = getSystemService(ALARM_SERVICE) as AlarmManager
+            val intent2 = Intent(this, AlarmReceiver2::class.java)
+            val pendingIntent2 =
+                PendingIntent.getBroadcast(this, 0, intent2, PendingIntent.FLAG_IMMUTABLE)
+            alarmManager2.setExact(
+                AlarmManager.RTC_WAKEUP, calendar2.timeInMillis,
+                pendingIntent2
+            )
+        }
+        else {
+            Toast.makeText(this, "Start time should be before end time!", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun sendNotification() {
@@ -139,18 +151,18 @@ class MainActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetListener, Da
         val startTimeTxt = findViewById<TextView>(R.id.startTimeTxt)
         val endTimeTxt = findViewById<TextView>(R.id.endTimeTxt)
         if (curr == "Start"){
-            calendar.set(startTimeYear,startTimeMonth,startTimeDay,startTimeHour,startTimeMinute)
-            val date = Date(calendar.timeInMillis)
             startTimeHour = hourOfDay
             startTimeMinute = minute
+            calendar.set(startTimeYear,startTimeMonth,startTimeDay,startTimeHour,startTimeMinute)
+            val date = Date(calendar.timeInMillis)
             curr = ""
             startTimeTxt.text = dateFormat.format(date)+" "+timeFormat.format(date)
         }
         else if (curr == "End"){
-            calendar.set(endTimeYear,endTimeMonth,endTimeDay,endTimeHour,endTimeMinute)
-            val date = Date(calendar.timeInMillis)
             endTimeHour = hourOfDay
             endTimeMinute = minute
+            calendar.set(endTimeYear,endTimeMonth,endTimeDay,endTimeHour,endTimeMinute)
+            val date = Date(calendar.timeInMillis)
             endTimeTxt.text = dateFormat.format(date)+" "+timeFormat.format(date)
             curr = ""
         }
